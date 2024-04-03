@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Nombre de usuario de GitHub
-USERNAME="codewithsadee"
+# Lectura del username de GitHub
+read -p $'\e[32mIngresa el username de GitHub:\e[0m ' USERNAME
 
-# Obtén la lista completa de repositorios del usuario desde la API de GitHub
+# Obtención de la lista completa de repositorios del usuario desde la API de GitHub
 REPOS=$(curl -s "https://api.github.com/users/$USERNAME/repos?per_page=100&page=1" | jq -r '.[].clone_url')
 
-# Agrega una página adicional si hay más de 100 repositorios
+# Manejo de casos donde hay más de 100 repositorios
 if [[ $(echo "$REPOS" | wc -w) -eq 100 ]]; then
     PAGE=2
     while true; do
@@ -17,7 +17,12 @@ if [[ $(echo "$REPOS" | wc -w) -eq 100 ]]; then
     done
 fi
 
-# Clona cada repositorio
+# Clonación de cada repositorio
 for REPO in $REPOS; do
-    git clone $REPO
+    REPO_NAME=$(basename "$REPO" ".git")
+    if [ -d "$REPO_NAME" ]; then
+        echo "El repositorio '$REPO_NAME' ya está clonado."
+    else
+        git clone "$REPO"
+    fi
 done
